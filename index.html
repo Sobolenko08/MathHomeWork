@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Весёлая Математика — 1 Класс</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts: Fredoka & Marck Script for friendly warm design -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .font-game {
+            font-family: 'Fredoka', cursive, sans-serif;
+        }
+
+        /* Bounce & Floating animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-pop {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-magic {
+            transition: all 0.15s ease;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+        }
+
+        .btn-magic:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+        }
+
+        /* Custom scrollbar for game menu */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f472b6;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-2 sm:p-4 text-slate-800 overflow-x-hidden">
+
+    <!-- Top Navigation / Score Bar -->
+    <header class="w-full max-w-2xl bg-white/80 backdrop-blur-md rounded-3xl p-3 sm:p-4 shadow-lg border-4 border-white flex justify-between items-center mb-2 z-10">
+        <button onclick="goHome()" class="bg-amber-400 hover:bg-amber-300 text-amber-900 font-extrabold px-3 py-2 sm:px-4 sm:py-2 rounded-2xl shadow-md flex items-center gap-1 sm:gap-2 active:scale-95 transition text-sm sm:text-base">
+            🏠 <span>Меню</span>
+        </button>
+
+        <!-- Stars Counter -->
+        <div class="flex items-center gap-2 bg-yellow-100 border-2 border-yellow-300 px-3 py-1.5 rounded-2xl shadow-inner">
+            <span class="text-2xl sm:text-3xl animate-bounce">⭐</span>
+            <span id="starsCount" class="text-xl sm:text-2xl font-black text-amber-600 font-game">0</span>
+        </div>
+
+        <!-- Mute/Sound Toggle -->
+        <button onclick="toggleAudio()" id="soundBtn" class="bg-indigo-100 text-indigo-700 font-bold p-2 sm:px-3 rounded-2xl shadow border-2 border-indigo-200 active:scale-95 text-lg">
+            🔊
+        </button>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="w-full max-w-2xl flex-1 flex flex-col justify-center items-center relative my-auto py-2">
+
+        <!-- ================= MAIN MENU ================= -->
+        <div id="menuScreen" class="w-full bg-white/90 backdrop-blur-lg rounded-3xl p-4 sm:p-8 shadow-2xl border-4 border-white text-center animate-pop">
+            <div class="mb-4">
+                <h1 class="text-3xl sm:text-5xl font-black text-pink-500 font-game drop-shadow-md mb-1">
+                    Математика 🍎
+                </h1>
+                <p class="text-base sm:text-lg font-bold text-slate-600">Готовимся к уроку: числа 2 и 3!</p>
+            </div>
+
+            <!-- Hero Mascot -->
+            <div class="text-6xl sm:text-8xl my-3 animate-float">
+                🦄
+            </div>
+
+            <p class="text-sm sm:text-base font-semibold text-purple-600 mb-4 bg-purple-50 py-2 px-4 rounded-full inline-block">
+                Выбери интересную игру:
+            </p>
+
+            <!-- Game Mode Buttons Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 font-game">
+                <button onclick="startMode('houses')" class="btn-magic bg-amber-400 hover:bg-amber-300 border-b-4 border-amber-600 text-amber-950 p-4 rounded-2xl flex items-center justify-start gap-3">
+                    <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">🏠</span>
+                    <div class="text-left">
+                        <div class="text-lg font-bold">Домики чисел</div>
+                        <div class="text-xs font-normal opacity-80">Состав чисел 2 и 3</div>
+                    </div>
+                </button>
+
+                <button onclick="startMode('signs')" class="btn-magic bg-sky-400 hover:bg-sky-300 border-b-4 border-sky-600 text-sky-950 p-4 rounded-2xl flex items-center justify-start gap-3">
+                    <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">➕</span>
+                    <div class="text-left">
+                        <div class="text-lg font-bold">Угадай знак</div>
+                        <div class="text-xs font-normal opacity-80">Подставь +, - или =</div>
+                    </div>
+                </button>
+
+                <button onclick="startMode('solve')" class="btn-magic bg-emerald-400 hover:bg-emerald-300 border-b-4 border-emerald-600 text-emerald-950 p-4 rounded-2xl flex items-center justify-start gap-3">
+                    <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">🎯</span>
+                    <div class="text-left">
+                        <div class="text-lg font-bold">Реши пример</div>
+                        <div class="text-xs font-normal opacity-80">Сложение и вычитание</div>
+                    </div>
+                </button>
+
+                <button onclick="startMode('harvest')" class="btn-magic bg-rose-400 hover:bg-rose-300 border-b-4 border-rose-600 text-rose-950 p-4 rounded-2xl flex items-center justify-start gap-3">
+                    <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">🍎</span>
+                    <div class="text-left">
+                        <div class="text-lg font-bold">Сбор Яблочек</div>
+                        <div class="text-xs font-normal opacity-80">Посчитай наглядно</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= GAMEPLAY CONTAINER ================= -->
+        <div id="gameScreen" class="w-full bg-white/90 backdrop-blur-lg rounded-3xl p-4 sm:p-6 shadow-2xl border-4 border-white text-center hidden animate-pop flex flex-col justify-between min-h-[420px]">
+            
+            <!-- Progress Bar inside game -->
+            <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden border border-slate-200 mb-4">
+                <div id="progressBar" class="bg-gradient-to-r from-pink-400 to-purple-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+
+            <!-- Dynamic Question / Task Title -->
+            <div id="taskHeader" class="text-slate-700 font-extrabold text-lg sm:text-xl mb-2 flex items-center justify-center gap-2">
+                <!-- Task title filled dynamically -->
+            </div>
+
+            <!-- Task Display Area -->
+            <div id="gameContent" class="my-auto py-2 flex flex-col items-center justify-center">
+                <!-- Dynamic Content injected here -->
+            </div>
+
+            <!-- Visual Helper (Apples counter for hints) -->
+            <div id="hintBox" class="mt-2 bg-amber-50 rounded-2xl p-2 border-2 border-dashed border-amber-200 hidden">
+                <div class="text-xs font-bold text-amber-700 mb-1">💡 Подсказка (почитай пальчиком):</div>
+                <div id="hintApples" class="flex justify-center items-center gap-2 text-2xl sm:text-3xl"></div>
+            </div>
+
+            <!-- Bottom Action / Controls -->
+            <div id="answersContainer" class="mt-4 grid gap-3 font-game">
+                <!-- Answer buttons injected dynamically -->
+            </div>
+        </div>
+
+        <!-- ================= LEVEL COMPLETE MODAL ================= -->
+        <div id="victoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl border-4 border-yellow-300 animate-pop">
+                <div class="text-7xl mb-2 animate-bounce">🏆</div>
+                <h2 class="text-3xl font-black text-pink-500 font-game mb-2">Умничка!</h2>
+                <p class="text-slate-600 font-bold mb-4">Ты отлично справилась со всеми заданиями!</p>
+                
+                <div class="bg-yellow-50 rounded-2xl p-4 border-2 border-yellow-200 mb-6 flex justify-center items-center gap-3">
+                    <span class="text-4xl">⭐</span>
+                    <span id="modalStars" class="text-3xl font-black text-amber-600 font-game">+5</span>
+                </div>
+
+                <button onclick="goHome()" class="w-full btn-magic bg-emerald-400 hover:bg-emerald-300 border-b-4 border-emerald-600 text-emerald-950 font-game font-bold text-xl py-3 rounded-2xl">
+                    Продолжить 🚀
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Credit -->
+    <footer class="text-center text-xs font-bold text-slate-500/80 my-1">
+        Учим математику легко и весело! ✨
+    </footer>
+
+    <!-- JS GAME LOGIC -->
+    <script>
+        // --- Web Audio API for Sound Effects ---
+        class SoundEffects {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playTone(freq, type = 'sine', duration = 0.1, delay = 0) {
+                if (this.muted) return;
+                try {
+                    this.init();
+                    setTimeout(() => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = type;
+                        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start();
+                        osc.stop(this.ctx.currentTime + duration);
+                    }, delay * 1000);
+                } catch(e){}
+            }
+
+            correct() {
+                this.playTone(523.25, 'triangle', 0.12, 0);   // C5
+                this.playTone(659.25, 'triangle', 0.12, 0.08); // E5
+                this.playTone(783.99, 'triangle', 0.25, 0.16); // G5
+            }
+
+            wrong() {
+                this.playTone(220, 'sawtooth', 0.15, 0);
+                this.playTone(180, 'sawtooth', 0.2, 0.12);
+            }
+
+            click() {
+                this.playTone(400, 'sine', 0.05);
+            }
+
+            fanfare() {
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((n, i) => this.playTone(n, 'triangle', 0.2, i * 0.1));
+            }
+        }
+
+        const audio = new SoundEffects();
+
+        function toggleAudio() {
+            audio.muted = !audio.muted;
+            document.getElementById('soundBtn').innerText = audio.muted ? '🔇' : '🔊';
+        }
+
+        // --- Game State Variables ---
+        let totalStars = 0;
+        let currentMode = '';
+        let currentQuestionIndex = 0;
+        let totalQuestions = 5;
+        let currentTask = null;
+
+        // Dynamic Elements
+        const menuScreen = document.getElementById('menuScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const taskHeader = document.getElementById('taskHeader');
+        const gameContent = document.getElementById('gameContent');
+        const answersContainer = document.getElementById('answersContainer');
+        const progressBar = document.getElementById('progressBar');
+        const hintBox = document.getElementById('hintBox');
+        const hintApples = document.getElementById('hintApples');
+
+        function updateStars(count) {
+            totalStars += count;
+            document.getElementById('starsCount').innerText = totalStars;
+        }
+
+        function goHome() {
+            audio.click();
+            gameScreen.classList.add('hidden');
+            menuScreen.classList.remove('hidden');
+            document.getElementById('victoryModal').classList.add('hidden');
+        }
+
+        function startMode(mode) {
+            audio.click();
+            currentMode = mode;
+            currentQuestionIndex = 0;
+            menuScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            loadNextQuestion();
+        }
+
+        function updateProgress() {
+            const pct = (currentQuestionIndex / totalQuestions) * 100;
+            progressBar.style.width = `${pct}%`;
+        }
+
+        // --- Question Generators for Target Numbers 2 and 3 ---
+        function loadNextQuestion() {
+            if (currentQuestionIndex >= totalQuestions) {
+                showVictory();
+                return;
+            }
+
+            updateProgress();
+            hintBox.classList.add('hidden');
+            hintApples.innerHTML = '';
+
+            switch (currentMode) {
+                case 'houses':
+                    setupHousesTask();
+                    break;
+                case 'signs':
+                    setupSignsTask();
+                    break;
+                case 'solve':
+                    setupSolveTask();
+                    break;
+                case 'harvest':
+                    setupHarvestTask();
+                    break;
+            }
+        }
+
+        // ================= 1. HOUSE OF NUMBERS (СОСТАВ ЧИСЛА) =================
+        function setupHousesTask() {
+            taskHeader.innerHTML = '🏡 Домик числа! Кто живет на этаже?';
+
+            // Randomly choose target 2 or 3
+            const target = Math.random() > 0.5 ? 2 : 3;
+            let first, second;
+
+            if (target === 2) {
+                const pairs = [[1, 1], [0, 2], [2, 0]];
+                [first, second] = pairs[Math.floor(Math.random() * pairs.length)];
+            } else {
+                const pairs = [[1, 2], [2, 1], [0, 3], [3, 0]];
+                [first, second] = pairs[Math.floor(Math.random() * pairs.length)];
+            }
+
+            // Hide one side
+            const hideSecond = Math.random() > 0.5;
+            const answer = hideSecond ? second : first;
+
+            currentTask = { answer };
+
+            gameContent.innerHTML = `
+                <div class="bg-gradient-to-b from-amber-100 to-orange-100 border-4 border-amber-300 rounded-3xl p-4 sm:p-6 shadow-md w-full max-w-xs flex flex-col items-center">
+                    <div class="bg-rose-500 text-white font-game text-3xl font-black px-6 py-2 rounded-2xl shadow-sm mb-4 border-2 border-white">
+                        🏠 Домик ${target}
+                    </div>
+                    <div class="flex items-center justify-center gap-4 bg-white p-4 rounded-2xl border-2 border-amber-200 w-full text-3xl sm:text-4xl font-game font-bold">
+                        <div class="bg-blue-100 border-2 border-blue-300 text-blue-700 w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center">
+                            ${hideSecond ? first : '?'}
+                        </div>
+                        <div class="text-amber-500">+</div>
+                        <div class="bg-pink-100 border-2 border-pink-300 text-pink-700 w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center">
+                            ${hideSecond ? '?' : second}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Render options (0, 1, 2, 3)
+            const options = [0, 1, 2, 3];
+            renderAnswerButtons(options, (opt) => opt === answer);
+
+            showHintApples(target);
+        }
+
+        // ================= 2. INSERT SIGN (+, -, =) =================
+        function setupSignsTask() {
+            taskHeader.innerHTML = '🧩 Вставь правильный значок!';
+
+            const signTasks = [
+                // Equations with + or -
+                { num1: 1, sign: '+', num2: 1, res: 2, options: ['+', '-'] },
+                { num1: 2, sign: '+', num2: 1, res: 3, options: ['+', '-'] },
+                { num1: 1, sign: '+', num2: 2, res: 3, options: ['+', '-'] },
+                { num1: 2, sign: '-', num2: 1, res: 1, options: ['+', '-'] },
+                { num1: 3, sign: '-', num2: 1, res: 2, options: ['+', '-'] },
+                { num1: 3, sign: '-', num2: 2, res: 1, options: ['+', '-'] },
+                { num1: 2, sign: '-', num2: 2, res: 0, options: ['+', '-'] },
+                { num1: 3, sign: '-', num2: 3, res: 0, options: ['+', '-'] },
+                // Equality tasks
+                { num1: 2, sign: '=', num2: 2, res: null, options: ['=', '+', '-'] },
+                { num1: 3, sign: '=', num2: 3, res: null, options: ['=', '+', '-'] },
+                { num1: '1+1', sign: '=', num2: 2, res: null, options: ['=', '+'] },
+                { num1: '2+1', sign: '=', num2: 3, res: null, options: ['=', '+'] }
+            ];
+
+            const task = signTasks[Math.floor(Math.random() * signTasks.length)];
+            currentTask = { answer: task.sign };
+
+            let displayExpr = '';
+            if (task.res !== null) {
+                displayExpr = `
+                    <div class="flex items-center gap-2 sm:gap-4 text-3xl sm:text-5xl font-game font-bold text-slate-800">
+                        <span class="bg-indigo-100 border-2 border-indigo-200 px-3 py-2 rounded-2xl">${task.num1}</span>
+                        <span class="bg-yellow-200 border-2 border-yellow-400 text-yellow-800 w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center animate-pulse">?</span>
+                        <span class="bg-indigo-100 border-2 border-indigo-200 px-3 py-2 rounded-2xl">${task.num2}</span>
+                        <span>=</span>
+                        <span class="bg-emerald-100 border-2 border-emerald-300 text-emerald-800 px-3 py-2 rounded-2xl">${task.res}</span>
+                    </div>
+                `;
+            } else {
+                displayExpr = `
+                    <div class="flex items-center gap-2 sm:gap-4 text-3xl sm:text-5xl font-game font-bold text-slate-800">
+                        <span class="bg-indigo-100 border-2 border-indigo-200 px-3 py-2 rounded-2xl">${task.num1}</span>
+                        <span class="bg-yellow-200 border-2 border-yellow-400 text-yellow-800 w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center animate-pulse">?</span>
+                        <span class="bg-emerald-100 border-2 border-emerald-300 text-emerald-800 px-3 py-2 rounded-2xl">${task.num2}</span>
+                    </div>
+                `;
+            }
+
+            gameContent.innerHTML = `
+                <div class="bg-sky-50 border-4 border-sky-200 rounded-3xl p-6 shadow-inner w-full flex justify-center items-center my-4">
+                    ${displayExpr}
+                </div>
+            `;
+
+            renderAnswerButtons(task.options, (opt) => opt === task.sign);
+        }
+
+        // ================= 3. SOLVE EXAMPLE (РЕШИ ПРИМЕР) =================
+        function setupSolveTask() {
+            taskHeader.innerHTML = '✏️ Посчитай и выбери ответ!';
+
+            const examples = [
+                { expr: '1 + 1', ans: 2, max: 2 },
+                { expr: '2 + 1', ans: 3, max: 3 },
+                { expr: '1 + 2', ans: 3, max: 3 },
+                { expr: '0 + 2', ans: 2, max: 2 },
+                { expr: '0 + 3', ans: 3, max: 3 },
+                { expr: '2 - 1', ans: 1, max: 2 },
+                { expr: '3 - 1', ans: 2, max: 3 },
+                { expr: '3 - 2', ans: 1, max: 3 },
+                { expr: '2 - 2', ans: 0, max: 2 },
+                { expr: '3 - 3', ans: 0, max: 3 }
+            ];
+
+            const task = examples[Math.floor(Math.random() * examples.length)];
+            currentTask = { answer: task.ans };
+
+            gameContent.innerHTML = `
+                <div class="bg-emerald-50 border-4 border-emerald-200 rounded-3xl p-6 shadow-inner w-full max-w-sm flex justify-center items-center my-2">
+                    <div class="text-4xl sm:text-6xl font-game font-bold text-slate-800 tracking-wider">
+                        ${task.expr} = <span class="text-emerald-500 font-black">?</span>
+                    </div>
+                </div>
+            `;
+
+            showHintApples(task.max);
+            renderAnswerButtons([0, 1, 2, 3], (opt) => opt === task.ans);
+        }
+
+        // ================= 4. HARVEST (СБОР УРОЖАЯ / ЯБЛОКИ) =================
+        function setupHarvestTask() {
+            taskHeader.innerHTML = '🧺 Сбор урожая: сколько яблочек?';
+
+            const target = Math.random() > 0.5 ? 2 : 3;
+            const applesCount = target;
+
+            let applesHTML = '';
+            for (let i = 0; i < applesCount; i++) {
+                applesHTML += `<span class="text-4xl sm:text-6xl animate-bounce hover:scale-125 transition transform inline-block cursor-pointer" style="animation-delay: ${i*0.15}s">🍎</span>`;
+            }
+
+            gameContent.innerHTML = `
+                <div class="bg-rose-50 border-4 border-rose-200 rounded-3xl p-6 shadow-inner w-full max-w-md text-center">
+                    <div class="text-lg font-bold text-slate-700 mb-3">Посчитай яблоки в корзинке:</div>
+                    <div class="bg-white/80 p-4 rounded-2xl border-2 border-rose-200 flex justify-center items-center gap-3 shadow-sm min-h-[90px]">
+                        ${applesHTML}
+                    </div>
+                </div>
+            `;
+
+            renderAnswerButtons([1, 2, 3], (opt) => opt === target);
+        }
+
+        // --- Helper: Render Hints (Interactive counting dots) ---
+        function showHintApples(count) {
+            hintBox.classList.remove('hidden');
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                html += `<span class="cursor-pointer active:scale-90 transition" onclick="audio.click()">🍎</span>`;
+            }
+            hintApples.innerHTML = html;
+        }
+
+        // --- Helper: Render Answer Buttons ---
+        function renderAnswerButtons(options, checkIsCorrect) {
+            answersContainer.className = `mt-4 grid gap-3 font-game ${options.length === 2 ? 'grid-cols-2' : options.length === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'}`;
+            answersContainer.innerHTML = '';
+
+            const colors = [
+                'bg-pink-400 hover:bg-pink-300 border-pink-600 text-white',
+                'bg-purple-400 hover:bg-purple-300 border-purple-600 text-white',
+                'bg-sky-400 hover:bg-sky-300 border-sky-600 text-white',
+                'bg-amber-400 hover:bg-amber-300 border-amber-600 text-amber-950'
+            ];
+
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `btn-magic ${colors[idx % colors.length]} border-b-4 text-3xl sm:text-4xl font-black py-4 sm:py-5 rounded-2xl shadow-lg transition active:scale-95 flex items-center justify-center`;
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(opt, checkIsCorrect(opt), btn);
+                answersContainer.appendChild(btn);
+            });
+        }
+
+        // --- Answer Check & Feedback Animation ---
+        function handleAnswer(selectedOpt, isCorrect, btnElement) {
+            // Disable buttons temporarily
+            const allBtns = answersContainer.querySelectorAll('button');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                audio.correct();
+                btnElement.classList.remove('bg-pink-400', 'bg-purple-400', 'bg-sky-400', 'bg-amber-400');
+                btnElement.classList.add('bg-emerald-500', 'border-emerald-700', 'scale-105');
+
+                // Mini star burst confetti
+                confetti({
+                    particleCount: 25,
+                    spread: 60,
+                    origin: { y: 0.7 }
+                });
+
+                updateStars(1);
+                currentQuestionIndex++;
+
+                setTimeout(() => {
+                    loadNextQuestion();
+                }, 1000);
+
+            } else {
+                audio.wrong();
+                btnElement.classList.add('bg-rose-500', 'animate-shake', 'border-rose-700');
+                
+                // Re-enable after mistake
+                setTimeout(() => {
+                    btnElement.classList.remove('bg-rose-500', 'border-rose-700');
+                    allBtns.forEach(b => b.disabled = false);
+                }, 700);
+            }
+        }
+
+        // --- Victory Modal Screen ---
+        function showVictory() {
+            audio.fanfare();
+            
+            // Full celebration confetti
+            confetti({
+                particleCount: 100,
+                spread: 100,
+                origin: { y: 0.5 }
+            });
+
+            document.getElementById('modalStars').innerText = `+${totalQuestions} ⭐`;
+            document.getElementById('victoryModal').classList.remove('hidden');
+        }
+
+        // Initialize Audio context on first click
+        document.body.addEventListener('click', () => {
+            audio.init();
+        }, { once: true });
+    </script>
+</body>
+</html>
