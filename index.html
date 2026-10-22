@@ -1,217 +1,249 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Весёлая Математика — 1 Класс</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Математика для 1 Класса — Весёлая Игра</title>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Canvas Confetti Library -->
+    <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- Google Fonts: Fredoka & Marck Script for friendly warm design -->
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     
+    <!-- Google Fonts: Nunito -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900;1000&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            font-family: 'Nunito', sans-serif;
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            touch-action: manipulation;
+        /* Base Mobile Reset & Touch Optimization */
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
             user-select: none;
             -webkit-user-select: none;
+            touch-action: manipulation;
         }
 
-        .font-game {
-            font-family: 'Fredoka', cursive, sans-serif;
+        body {
+            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(180deg, #fce7f3 0%, #e0e7ff 50%, #dbeafe 100%);
+            min-height: 100dvh;
+            padding-top: var(--sat);
+            padding-bottom: var(--sab);
+            padding-left: var(--sal);
+            padding-right: var(--sar);
+            overflow-x: hidden;
         }
 
-        /* Bounce & Floating animations */
-        @keyframes float {
+        /* Responsive Container Fix for Mobile Viewports */
+        .app-viewport {
+            min-height: calc(100dvh - var(--sat) - var(--sab));
+        }
+
+        /* Tactile Mobile Buttons with 3D Pop effect */
+        .btn-touch {
+            min-height: 60px;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.12);
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+        }
+
+        .btn-touch:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.12);
+        }
+
+        .btn-large-choice {
+            min-height: 72px;
+            font-size: 1.875rem; /* 30px */
+        }
+
+        /* Animations */
+        @keyframes floatSlow {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(2deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
         }
 
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
+        .animate-mascot {
+            animation: floatSlow 3.5s ease-in-out infinite;
         }
 
-        @keyframes popIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            80% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
+        @keyframes pulseSuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
         }
 
-        .animate-pop {
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .animate-success {
+            animation: pulseSuccess 0.4s ease-out;
         }
 
-        .btn-magic {
-            transition: all 0.15s ease;
-            box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
         }
 
-        .btn-magic:active {
-            transform: translateY(6px);
-            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
-        }
-
-        /* Custom scrollbar for game menu */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.3);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #f472b6;
-            border-radius: 10px;
+        .animate-shake {
+            animation: shakeError 0.4s ease-in-out;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between items-center p-2 sm:p-4 text-slate-800 overflow-x-hidden">
+<body class="flex flex-col justify-between text-slate-800">
 
-    <!-- Top Navigation / Score Bar -->
-    <header class="w-full max-w-2xl bg-white/80 backdrop-blur-md rounded-3xl p-3 sm:p-4 shadow-lg border-4 border-white flex justify-between items-center mb-2 z-10">
-        <button onclick="goHome()" class="bg-amber-400 hover:bg-amber-300 text-amber-900 font-extrabold px-3 py-2 sm:px-4 sm:py-2 rounded-2xl shadow-md flex items-center gap-1 sm:gap-2 active:scale-95 transition text-sm sm:text-base">
-            🏠 <span>Меню</span>
-        </button>
+    <!-- App Wrapper for Dynamic Height -->
+    <div class="app-viewport w-full max-w-md mx-auto flex flex-col justify-between p-3 sm:p-5">
 
-        <!-- Stars Counter -->
-        <div class="flex items-center gap-2 bg-yellow-100 border-2 border-yellow-300 px-3 py-1.5 rounded-2xl shadow-inner">
-            <span class="text-2xl sm:text-3xl animate-bounce">⭐</span>
-            <span id="starsCount" class="text-xl sm:text-2xl font-black text-amber-600 font-game">0</span>
-        </div>
+        <!-- HEADER: Score & Navigation -->
+        <header class="w-full bg-white/90 backdrop-blur-md rounded-3xl p-2.5 sm:p-3 shadow-md border-2 border-white/80 flex justify-between items-center z-20 gap-2 shrink-0">
+            <button onclick="goHome()" id="homeBtn" class="btn-touch bg-amber-400 hover:bg-amber-300 text-amber-950 font-black px-4 rounded-2xl flex items-center gap-1.5 active:scale-95 text-base sm:text-lg min-h-[52px]">
+                <span>🏠</span> <span class="hidden xs:inline">Меню</span>
+            </button>
 
-        <!-- Mute/Sound Toggle -->
-        <button onclick="toggleAudio()" id="soundBtn" class="bg-indigo-100 text-indigo-700 font-bold p-2 sm:px-3 rounded-2xl shadow border-2 border-indigo-200 active:scale-95 text-lg">
-            🔊
-        </button>
-    </header>
-
-    <!-- Main Game Container -->
-    <main class="w-full max-w-2xl flex-1 flex flex-col justify-center items-center relative my-auto py-2">
-
-        <!-- ================= MAIN MENU ================= -->
-        <div id="menuScreen" class="w-full bg-white/90 backdrop-blur-lg rounded-3xl p-4 sm:p-8 shadow-2xl border-4 border-white text-center animate-pop">
-            <div class="mb-4">
-                <h1 class="text-3xl sm:text-5xl font-black text-pink-500 font-game drop-shadow-md mb-1">
-                    Математика 🍎
-                </h1>
-                <p class="text-base sm:text-lg font-bold text-slate-600">Готовимся к уроку: числа 2 и 3!</p>
+            <!-- Stars Counter -->
+            <div class="flex items-center gap-2 bg-amber-50 border-2 border-amber-200 px-3.5 py-1.5 rounded-2xl shadow-inner min-h-[52px]">
+                <span class="text-2xl animate-bounce">⭐</span>
+                <span id="starsCount" class="text-2xl font-black text-amber-600">0</span>
             </div>
 
-            <!-- Hero Mascot -->
-            <div class="text-6xl sm:text-8xl my-3 animate-float">
-                🦄
-            </div>
+            <!-- Sound Toggle -->
+            <button onclick="toggleAudio()" id="soundBtn" class="btn-touch bg-indigo-100 text-indigo-800 font-extrabold px-3.5 rounded-2xl border-2 border-indigo-200 text-xl min-h-[52px] flex items-center justify-center">
+                🔊
+            </button>
+        </header>
 
-            <p class="text-sm sm:text-base font-semibold text-purple-600 mb-4 bg-purple-50 py-2 px-4 rounded-full inline-block">
-                Выбери интересную игру:
-            </p>
+        <!-- MAIN GAME CONTAINER -->
+        <main class="my-auto py-2 w-full flex-1 flex flex-col justify-center items-center relative">
 
-            <!-- Game Mode Buttons Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 font-game">
-                <button onclick="startMode('houses')" class="btn-magic bg-amber-400 hover:bg-amber-300 border-b-4 border-amber-600 text-amber-950 p-4 rounded-2xl flex items-center justify-start gap-3">
-                    <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">🏠</span>
-                    <div class="text-left">
-                        <div class="text-lg font-bold">Домики чисел</div>
-                        <div class="text-xs font-normal opacity-80">Состав чисел 2 и 3</div>
+            <!-- ================= SCREEN 1: MENU ================= -->
+            <div id="menuScreen" class="w-full bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-xl border-4 border-white text-center flex flex-col justify-between">
+                <div>
+                    <div class="inline-block bg-pink-100 text-pink-700 px-4 py-1 rounded-full text-xs sm:text-sm font-extrabold mb-2 border border-pink-200">
+                        1 Класс • Числа 2 и 3
                     </div>
-                </button>
-
-                <button onclick="startMode('compare')" class="btn-magic bg-fuchsia-400 hover:bg-fuchsia-300 border-b-4 border-fuchsia-600 text-fuchsia-950 p-4 rounded-2xl flex items-center justify-start gap-3">
-                    <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">⚖️</span>
-                    <div class="text-left">
-                        <div class="text-lg font-bold">Сравнение</div>
-                        <div class="text-xs font-normal opacity-80">Знаки &gt;, &lt;, =</div>
-                    </div>
-                </button>
-
-                <button onclick="startMode('signs')" class="btn-magic bg-sky-400 hover:bg-sky-300 border-b-4 border-sky-600 text-sky-950 p-4 rounded-2xl flex items-center justify-start gap-3">
-                    <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">➕</span>
-                    <div class="text-left">
-                        <div class="text-lg font-bold">Угадай знак</div>
-                        <div class="text-xs font-normal opacity-80">Подставь +, - или =</div>
-                    </div>
-                </button>
-
-                <button onclick="startMode('solve')" class="btn-magic bg-emerald-400 hover:bg-emerald-300 border-b-4 border-emerald-600 text-emerald-950 p-4 rounded-2xl flex items-center justify-start gap-3">
-                    <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">🎯</span>
-                    <div class="text-left">
-                        <div class="text-lg font-bold">Реши пример</div>
-                        <div class="text-xs font-normal opacity-80">Сложение и вычитание</div>
-                    </div>
-                </button>
-
-                <button onclick="startMode('harvest')" class="btn-magic bg-rose-400 hover:bg-rose-300 border-b-4 border-rose-600 text-rose-950 p-4 rounded-2xl flex items-center justify-start gap-3 sm:col-span-2">
-                    <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">🍎</span>
-                    <div class="text-left">
-                        <div class="text-lg font-bold">Сбор Яблочек</div>
-                        <div class="text-xs font-normal opacity-80">Посчитай наглядно</div>
-                    </div>
-                </button>
-            </div>
-        </div>
-
-        <!-- ================= GAMEPLAY CONTAINER ================= -->
-        <div id="gameScreen" class="w-full bg-white/90 backdrop-blur-lg rounded-3xl p-4 sm:p-6 shadow-2xl border-4 border-white text-center hidden animate-pop flex flex-col justify-between min-h-[420px]">
-            
-            <!-- Progress Bar inside game -->
-            <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden border border-slate-200 mb-4">
-                <div id="progressBar" class="bg-gradient-to-r from-pink-400 to-purple-500 h-full w-0 transition-all duration-300"></div>
-            </div>
-
-            <!-- Dynamic Question / Task Title -->
-            <div id="taskHeader" class="text-slate-700 font-extrabold text-lg sm:text-xl mb-2 flex items-center justify-center gap-2">
-                <!-- Task title filled dynamically -->
-            </div>
-
-            <!-- Task Display Area -->
-            <div id="gameContent" class="my-auto py-2 flex flex-col items-center justify-center">
-                <!-- Dynamic Content injected here -->
-            </div>
-
-            <!-- Visual Helper (Apples counter for hints) -->
-            <div id="hintBox" class="mt-2 bg-amber-50 rounded-2xl p-2 border-2 border-dashed border-amber-200 hidden">
-                <div class="text-xs font-bold text-amber-700 mb-1">💡 Подсказка (почитай пальчиком):</div>
-                <div id="hintApples" class="flex justify-center items-center gap-2 text-2xl sm:text-3xl"></div>
-            </div>
-
-            <!-- Bottom Action / Controls -->
-            <div id="answersContainer" class="mt-4 grid gap-3 font-game">
-                <!-- Answer buttons injected dynamically -->
-            </div>
-        </div>
-
-        <!-- ================= LEVEL COMPLETE MODAL ================= -->
-        <div id="victoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-            <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl border-4 border-yellow-300 animate-pop">
-                <div class="text-7xl mb-2 animate-bounce">🏆</div>
-                <h2 class="text-3xl font-black text-pink-500 font-game mb-2">Умничка!</h2>
-                <p class="text-slate-600 font-bold mb-4">Ты отлично справилась со всеми заданиями!</p>
-                
-                <div class="bg-yellow-50 rounded-2xl p-4 border-2 border-yellow-200 mb-6 flex justify-center items-center gap-3">
-                    <span class="text-4xl">⭐</span>
-                    <span id="modalStars" class="text-3xl font-black text-amber-600 font-game">+5</span>
+                    <h1 class="text-3xl sm:text-4xl font-black text-pink-500 drop-shadow-sm mb-1">
+                        Математика 🦄
+                    </h1>
+                    <p class="text-slate-600 text-sm font-bold">Выбери интересную игру:</p>
                 </div>
 
-                <button onclick="goHome()" class="w-full btn-magic bg-emerald-400 hover:bg-emerald-300 border-b-4 border-emerald-600 text-emerald-950 font-game font-bold text-xl py-3 rounded-2xl">
+                <!-- Cute Mascot -->
+                <div class="my-3 flex justify-center items-center gap-3">
+                    <span class="text-6xl sm:text-7xl animate-mascot">🐰</span>
+                    <span class="text-6xl sm:text-7xl animate-mascot" style="animation-delay: 0.5s;">🐱</span>
+                </div>
+
+                <!-- Game Modes List -->
+                <div class="space-y-2.5 w-full">
+                    <button onclick="startMode('houses')" class="btn-touch w-full bg-amber-400 hover:bg-amber-300 border-b-4 border-amber-600 text-amber-950 font-black p-3 rounded-2xl flex items-center gap-3 text-left">
+                        <span class="text-3xl bg-white/90 p-2 rounded-xl shadow-sm">🏠</span>
+                        <div>
+                            <div class="text-base sm:text-lg leading-tight">Домики чисел</div>
+                            <div class="text-xs font-bold text-amber-900/70">Состав чисел 2 и 3</div>
+                        </div>
+                    </button>
+
+                    <button onclick="startMode('solve')" class="btn-touch w-full bg-emerald-400 hover:bg-emerald-300 border-b-4 border-emerald-600 text-emerald-950 font-black p-3 rounded-2xl flex items-center gap-3 text-left">
+                        <span class="text-3xl bg-white/90 p-2 rounded-xl shadow-sm">🎯</span>
+                        <div>
+                            <div class="text-base sm:text-lg leading-tight">Реши пример</div>
+                            <div class="text-xs font-bold text-emerald-900/70">Сложение и вычитание</div>
+                        </div>
+                    </button>
+
+                    <button onclick="startMode('compare')" class="btn-touch w-full bg-fuchsia-400 hover:bg-fuchsia-300 border-b-4 border-fuchsia-600 text-fuchsia-950 font-black p-3 rounded-2xl flex items-center gap-3 text-left">
+                        <span class="text-3xl bg-white/90 p-2 rounded-xl shadow-sm">⚖️</span>
+                        <div>
+                            <div class="text-base sm:text-lg leading-tight">Сравнение (&gt;, &lt;, =)</div>
+                            <div class="text-xs font-bold text-fuchsia-900/70">Числа и выражения</div>
+                        </div>
+                    </button>
+
+                    <button onclick="startMode('signs')" class="btn-touch w-full bg-sky-400 hover:bg-sky-300 border-b-4 border-sky-600 text-sky-950 font-black p-3 rounded-2xl flex items-center gap-3 text-left">
+                        <span class="text-3xl bg-white/90 p-2 rounded-xl shadow-sm">❓</span>
+                        <div>
+                            <div class="text-base sm:text-lg leading-tight">Вставь знак</div>
+                            <div class="text-xs font-bold text-sky-900/70">Подбери +, - или =</div>
+                        </div>
+                    </button>
+
+                    <button onclick="startMode('harvest')" class="btn-touch w-full bg-rose-400 hover:bg-rose-300 border-b-4 border-rose-600 text-rose-950 font-black p-3 rounded-2xl flex items-center gap-3 text-left">
+                        <span class="text-3xl bg-white/90 p-2 rounded-xl shadow-sm">🍎</span>
+                        <div>
+                            <div class="text-base sm:text-lg leading-tight">Сбор Яблочек</div>
+                            <div class="text-xs font-bold text-rose-900/70">Посчитай наглядно</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ================= SCREEN 2: GAMEPLAY ================= -->
+            <div id="gameScreen" class="w-full bg-white/95 backdrop-blur-md rounded-3xl p-4 shadow-xl border-4 border-white text-center hidden flex flex-col justify-between min-h-[420px] my-auto">
+                
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden border border-slate-200 mb-2">
+                    <div id="progressBar" class="bg-gradient-to-r from-pink-400 to-purple-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+
+                <!-- Dynamic Task Title -->
+                <div id="taskHeader" class="text-slate-700 font-extrabold text-base sm:text-lg mb-1 flex items-center justify-center gap-2">
+                    <!-- Task title -->
+                </div>
+
+                <!-- Main Interactive Task Area -->
+                <div id="gameContent" class="my-auto py-2 flex flex-col items-center justify-center w-full">
+                    <!-- Injected Task Content -->
+                </div>
+
+                <!-- Interactive Apple Hints Counter -->
+                <div id="hintBox" class="bg-amber-50 rounded-2xl p-2 border-2 border-dashed border-amber-300 mb-2 w-full">
+                    <div class="text-xs font-extrabold text-amber-800 mb-1">💡 Подсказка (посчитай пальчиком):</div>
+                    <div id="hintApples" class="flex justify-center items-center gap-2 text-3xl"></div>
+                </div>
+
+                <!-- Answer Options Buttons Area -->
+                <div id="answersContainer" class="w-full font-black">
+                    <!-- Dynamic Buttons -->
+                </div>
+            </div>
+
+        </main>
+
+        <!-- FOOTER: Encouragement -->
+        <footer class="text-center text-xs font-black text-slate-500/80 py-1 shrink-0">
+            Учись легко и получай звёздочки! ⭐
+        </footer>
+
+        <!-- ================= VICTORY MODAL ================= -->
+        <div id="victoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl border-4 border-amber-300 animate-success">
+                <div class="text-7xl mb-2 animate-bounce">🏆</div>
+                <h2 class="text-3xl font-black text-pink-500 mb-1">Умничка!</h2>
+                <p class="text-slate-600 font-extrabold text-sm mb-4">Ты отлично справилась со всеми заданиями!</p>
+                
+                <div class="bg-amber-50 rounded-2xl p-3 border-2 border-amber-200 mb-5 flex justify-center items-center gap-3">
+                    <span class="text-4xl">⭐</span>
+                    <span id="modalStars" class="text-3xl font-black text-amber-600">+5</span>
+                </div>
+
+                <button onclick="goHome()" class="btn-touch w-full bg-emerald-400 hover:bg-emerald-300 border-b-4 border-emerald-600 text-emerald-950 font-black text-xl py-3 rounded-2xl">
                     Продолжить 🚀
                 </button>
             </div>
         </div>
 
-    </main>
+    </div>
 
-    <!-- Footer Credit -->
-    <footer class="text-center text-xs font-bold text-slate-500/80 my-1">
-        Учим математику легко и весело! ✨
-    </footer>
-
-    <!-- JS GAME LOGIC -->
+    <!-- JAVASCRIPT GAME ENGINE -->
     <script>
-        // --- Web Audio API for Sound Effects ---
-        class SoundEffects {
+        // --- Web Audio API Engine ---
+        class SoundEngine {
             constructor() {
                 this.ctx = null;
                 this.muted = false;
@@ -232,7 +264,7 @@
                         const gain = this.ctx.createGain();
                         osc.type = type;
                         osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
                         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
                         osc.connect(gain);
                         gain.connect(this.ctx.destination);
@@ -243,27 +275,27 @@
             }
 
             correct() {
-                this.playTone(523.25, 'triangle', 0.12, 0);   // C5
-                this.playTone(659.25, 'triangle', 0.12, 0.08); // E5
-                this.playTone(783.99, 'triangle', 0.25, 0.16); // G5
+                this.playTone(523.25, 'triangle', 0.1, 0);   // C5
+                this.playTone(659.25, 'triangle', 0.1, 0.08); // E5
+                this.playTone(783.99, 'triangle', 0.2, 0.16); // G5
             }
 
             wrong() {
-                this.playTone(220, 'sawtooth', 0.15, 0);
-                this.playTone(180, 'sawtooth', 0.2, 0.12);
+                this.playTone(220, 'sawtooth', 0.12, 0);
+                this.playTone(170, 'sawtooth', 0.18, 0.1);
             }
 
             click() {
-                this.playTone(400, 'sine', 0.05);
+                this.playTone(450, 'sine', 0.04);
             }
 
             fanfare() {
                 const notes = [440, 554.37, 659.25, 880];
-                notes.forEach((n, i) => this.playTone(n, 'triangle', 0.2, i * 0.1));
+                notes.forEach((n, i) => this.playTone(n, 'triangle', 0.18, i * 0.09));
             }
         }
 
-        const audio = new SoundEffects();
+        const audio = new SoundEngine();
 
         function toggleAudio() {
             audio.muted = !audio.muted;
@@ -274,7 +306,7 @@
         let totalStars = 0;
         let currentMode = '';
         let currentQuestionIndex = 0;
-        let totalQuestions = 5;
+        const totalQuestions = 5;
         let currentTask = null;
 
         // Dynamic Elements
@@ -313,7 +345,6 @@
             progressBar.style.width = `${pct}%`;
         }
 
-        // --- Question Generators for Target Numbers 2 and 3 ---
         function loadNextQuestion() {
             if (currentQuestionIndex >= totalQuestions) {
                 showVictory();
@@ -328,14 +359,14 @@
                 case 'houses':
                     setupHousesTask();
                     break;
+                case 'solve':
+                    setupSolveTask();
+                    break;
                 case 'compare':
                     setupCompareTask();
                     break;
                 case 'signs':
                     setupSignsTask();
-                    break;
-                case 'solve':
-                    setupSolveTask();
                     break;
                 case 'harvest':
                     setupHarvestTask();
@@ -343,161 +374,180 @@
             }
         }
 
-        // ================= 1. HOUSE OF NUMBERS (СОСТАВ ЧИСЛА) =================
-        // ================= 2. COMPARE NUMBERS & EXPRESSIONS (СРАВНЕНИЕ >, <, =) =================
-        function setupCompareTask() {
-            taskHeader.innerHTML = '⚖️ Что больше, меньше или равно?';
+        // ================= 1. NUMBER HOUSES (СОСТАВ ЧИСЛА) =================
+        function setupHousesTask() {
+            taskHeader.innerHTML = '🏠 Засели домик! Какое число пропущено?';
 
-            // Tasks limited to 0, 1, 2, 3 and composition of 2, 3
-            const compareTasks = [
-                // Simple numbers
-                { leftExpr: '2', rightExpr: '3', valLeft: 2, valRight: 3, correctSign: '<' },
-                { leftExpr: '3', rightExpr: '1', valLeft: 3, valRight: 1, correctSign: '>' },
-                { leftExpr: '2', rightExpr: '2', valLeft: 2, valRight: 2, correctSign: '=' },
-                { leftExpr: '3', rightExpr: '3', valLeft: 3, valRight: 3, correctSign: '=' },
-                { leftExpr: '0', rightExpr: '2', valLeft: 0, valRight: 2, correctSign: '<' },
-                
-                // Expression vs Number
-                { leftExpr: '1 + 1', rightExpr: '3', valLeft: 2, valRight: 3, correctSign: '<' },
-                { leftExpr: '1 + 2', rightExpr: '3', valLeft: 3, valRight: 3, correctSign: '=' },
-                { leftExpr: '3 - 1', rightExpr: '1', valLeft: 2, valRight: 1, correctSign: '>' },
-                { leftExpr: '3 - 2', rightExpr: '2', valLeft: 1, valRight: 2, correctSign: '<' },
-                { leftExpr: '2 + 1', rightExpr: '2', valLeft: 3, valRight: 2, correctSign: '>' },
-                { leftExpr: '2 - 1', rightExpr: '1', valLeft: 1, valRight: 1, correctSign: '=' },
+            // Target number 2 or 3
+            const roofNum = Math.random() > 0.5 ? 2 : 3;
+            let leftVal = Math.floor(Math.random() * (roofNum + 1));
+            let rightVal = roofNum - leftVal;
 
-                // Number vs Expression
-                { leftExpr: '3', rightExpr: '1 + 1', valLeft: 3, valRight: 2, correctSign: '>' },
-                { leftExpr: '2', rightExpr: '2 + 1', valLeft: 2, valRight: 3, correctSign: '<' },
-                { leftExpr: '1', rightExpr: '3 - 2', valLeft: 1, valRight: 1, correctSign: '=' },
+            // Missing left or right
+            const isLeftMissing = Math.random() > 0.5;
+            const missingVal = isLeftMissing ? leftVal : rightVal;
 
-                // Expression vs Expression
-                { leftExpr: '1 + 1', rightExpr: '3 - 1', valLeft: 2, valRight: 2, correctSign: '=' },
-                { leftExpr: '2 + 1', rightExpr: '1 + 1', valLeft: 3, valRight: 2, correctSign: '>' },
-                { leftExpr: '3 - 2', rightExpr: '1 + 2', valLeft: 1, valRight: 3, correctSign: '<' }
-            ];
-
-            const task = compareTasks[Math.floor(Math.random() * compareTasks.length)];
-            currentTask = { answer: task.correctSign };
+            currentTask = { answer: missingVal };
 
             gameContent.innerHTML = `
-                <div class="bg-fuchsia-50 border-4 border-fuchsia-200 rounded-3xl p-6 shadow-inner w-full flex justify-center items-center my-3">
-                    <div class="flex items-center gap-3 sm:gap-6 text-3xl sm:text-5xl font-game font-black text-slate-800">
-                        <span class="bg-indigo-100 border-2 border-indigo-300 px-4 py-3 rounded-2xl shadow-sm">${task.leftExpr}</span>
-                        <span class="bg-amber-200 border-2 border-amber-400 text-amber-900 w-14 h-14 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center animate-pulse text-4xl sm:text-5xl shadow">?</span>
-                        <span class="bg-pink-100 border-2 border-pink-300 px-4 py-3 rounded-2xl shadow-sm">${task.rightExpr}</span>
+                <div class="w-full max-w-[240px] bg-amber-100/80 border-4 border-amber-300 rounded-3xl p-3 shadow-md flex flex-col items-center my-1">
+                    <!-- Roof -->
+                    <div class="w-full bg-rose-500 text-white font-black text-3xl py-2 rounded-2xl shadow border-2 border-rose-600 mb-3 flex items-center justify-center gap-1">
+                        <span>🏠</span> <span>${roofNum}</span>
+                    </div>
+                    <!-- House Floor -->
+                    <div class="w-full grid grid-cols-2 gap-2 text-3xl font-black">
+                        <div class="bg-white border-2 border-amber-300 h-16 rounded-2xl flex items-center justify-center shadow-sm">
+                            ${isLeftMissing ? '<span class="text-pink-500 font-extrabold animate-pulse text-4xl">?</span>' : leftVal}
+                        </div>
+                        <div class="bg-white border-2 border-amber-300 h-16 rounded-2xl flex items-center justify-center shadow-sm">
+                            ${!isLeftMissing ? '<span class="text-pink-500 font-extrabold animate-pulse text-4xl">?</span>' : rightVal}
+                        </div>
                     </div>
                 </div>
             `;
 
-            // Hint shows max value needed for understanding
-            showHintApples(Math.max(task.valLeft, task.valRight) || 3);
-
-            // Large sign buttons (<, =, >)
-            renderAnswerButtons(['<', '=', '>'], (opt) => opt === task.correctSign);
+            showHintApples(roofNum);
+            renderAnswerButtons([0, 1, 2, 3].filter(n => n <= roofNum), (opt) => opt === missingVal);
         }
 
-        // ================= 3. INSERT SIGN (+, -, =) =================
-        function setupSignsTask() {
-            taskHeader.innerHTML = '🧩 Вставь правильный значок!';
-
-            const signTasks = [
-                // Equations with + or -
-                { num1: 1, sign: '+', num2: 1, res: 2, options: ['+', '-'] },
-                { num1: 2, sign: '+', num2: 1, res: 3, options: ['+', '-'] },
-                { num1: 1, sign: '+', num2: 2, res: 3, options: ['+', '-'] },
-                { num1: 2, sign: '-', num2: 1, res: 1, options: ['+', '-'] },
-                { num1: 3, sign: '-', num2: 1, res: 2, options: ['+', '-'] },
-                { num1: 3, sign: '-', num2: 2, res: 1, options: ['+', '-'] },
-                { num1: 2, sign: '-', num2: 2, res: 0, options: ['+', '-'] },
-                { num1: 3, sign: '-', num2: 3, res: 0, options: ['+', '-'] },
-                // Equality tasks
-                { num1: 2, sign: '=', num2: 2, res: null, options: ['=', '+', '-'] },
-                { num1: 3, sign: '=', num2: 3, res: null, options: ['=', '+', '-'] },
-                { num1: '1+1', sign: '=', num2: 2, res: null, options: ['=', '+'] },
-                { num1: '2+1', sign: '=', num2: 3, res: null, options: ['=', '+'] }
-            ];
-
-            const task = signTasks[Math.floor(Math.random() * signTasks.length)];
-            currentTask = { answer: task.sign };
-
-            let displayExpr = '';
-            if (task.res !== null) {
-                displayExpr = `
-                    <div class="flex items-center gap-2 sm:gap-4 text-3xl sm:text-5xl font-game font-bold text-slate-800">
-                        <span class="bg-indigo-100 border-2 border-indigo-200 px-3 py-2 rounded-2xl">${task.num1}</span>
-                        <span class="bg-yellow-200 border-2 border-yellow-400 text-yellow-800 w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center animate-pulse">?</span>
-                        <span class="bg-indigo-100 border-2 border-indigo-200 px-3 py-2 rounded-2xl">${task.num2}</span>
-                        <span>=</span>
-                        <span class="bg-emerald-100 border-2 border-emerald-300 text-emerald-800 px-3 py-2 rounded-2xl">${task.res}</span>
-                    </div>
-                `;
-            } else {
-                displayExpr = `
-                    <div class="flex items-center gap-2 sm:gap-4 text-3xl sm:text-5xl font-game font-bold text-slate-800">
-                        <span class="bg-indigo-100 border-2 border-indigo-200 px-3 py-2 rounded-2xl">${task.num1}</span>
-                        <span class="bg-yellow-200 border-2 border-yellow-400 text-yellow-800 w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center animate-pulse">?</span>
-                        <span class="bg-emerald-100 border-2 border-emerald-300 text-emerald-800 px-3 py-2 rounded-2xl">${task.num2}</span>
-                    </div>
-                `;
-            }
-
-            gameContent.innerHTML = `
-                <div class="bg-sky-50 border-4 border-sky-200 rounded-3xl p-6 shadow-inner w-full flex justify-center items-center my-4">
-                    ${displayExpr}
-                </div>
-            `;
-
-            renderAnswerButtons(task.options, (opt) => opt === task.sign);
-        }
-
-        // ================= 3. SOLVE EXAMPLE (РЕШИ ПРИМЕР) =================
+        // ================= 2. SOLVE EXAMPLE (РЕШИ ПРИМЕР) =================
         function setupSolveTask() {
-            taskHeader.innerHTML = '✏️ Посчитай и выбери ответ!';
+            taskHeader.innerHTML = '🎯 Реши пример (сложение или вычитание)';
 
             const examples = [
-                { expr: '1 + 1', ans: 2, max: 2 },
-                { expr: '2 + 1', ans: 3, max: 3 },
-                { expr: '1 + 2', ans: 3, max: 3 },
-                { expr: '0 + 2', ans: 2, max: 2 },
-                { expr: '0 + 3', ans: 3, max: 3 },
-                { expr: '2 - 1', ans: 1, max: 2 },
-                { expr: '3 - 1', ans: 2, max: 3 },
-                { expr: '3 - 2', ans: 1, max: 3 },
-                { expr: '2 - 2', ans: 0, max: 2 },
-                { expr: '3 - 3', ans: 0, max: 3 }
+                { expr: '1 + 1', ans: 2, hint: 2 },
+                { expr: '2 + 1', ans: 3, hint: 3 },
+                { expr: '1 + 2', ans: 3, hint: 3 },
+                { expr: '0 + 2', ans: 2, hint: 2 },
+                { expr: '0 + 3', ans: 3, hint: 3 },
+                { expr: '2 - 1', ans: 1, hint: 2 },
+                { expr: '3 - 1', ans: 2, hint: 3 },
+                { expr: '3 - 2', ans: 1, hint: 3 },
+                { expr: '2 - 2', ans: 0, hint: 2 },
+                { expr: '3 - 3', ans: 0, hint: 3 }
             ];
 
             const task = examples[Math.floor(Math.random() * examples.length)];
             currentTask = { answer: task.ans };
 
             gameContent.innerHTML = `
-                <div class="bg-emerald-50 border-4 border-emerald-200 rounded-3xl p-6 shadow-inner w-full max-w-sm flex justify-center items-center my-2">
-                    <div class="text-4xl sm:text-6xl font-game font-bold text-slate-800 tracking-wider">
-                        ${task.expr} = <span class="text-emerald-500 font-black">?</span>
+                <div class="bg-emerald-50 border-4 border-emerald-200 rounded-3xl p-5 shadow-inner w-full flex justify-center items-center my-2">
+                    <div class="text-4xl sm:text-5xl font-black text-slate-800 tracking-wider">
+                        ${task.expr} = <span class="text-pink-500 font-black animate-pulse">?</span>
                     </div>
                 </div>
             `;
 
-            showHintApples(task.max);
+            showHintApples(task.hint);
             renderAnswerButtons([0, 1, 2, 3], (opt) => opt === task.ans);
         }
 
-        // ================= 4. HARVEST (СБОР УРОЖАЯ / ЯБЛОКИ) =================
-        function setupHarvestTask() {
-            taskHeader.innerHTML = '🧺 Сбор урожая: сколько яблочек?';
+        // ================= 3. COMPARE (СРАВНЕНИЕ >, <, =) =================
+        function setupCompareTask() {
+            taskHeader.innerHTML = '⚖️ Выбери знак: больше, меньше или равно';
 
-            const target = Math.random() > 0.5 ? 2 : 3;
-            const applesCount = target;
+            const compareTasks = [
+                // Numbers
+                { leftExpr: '2', rightExpr: '3', valL: 2, valR: 3, sign: '<' },
+                { leftExpr: '3', rightExpr: '1', valL: 3, valR: 1, sign: '>' },
+                { leftExpr: '2', rightExpr: '2', valL: 2, valR: 2, sign: '=' },
+                { leftExpr: '3', rightExpr: '3', valL: 3, valR: 3, sign: '=' },
+                { leftExpr: '0', rightExpr: '2', valL: 0, valR: 2, sign: '<' },
+                // Expression vs Number
+                { leftExpr: '1 + 1', rightExpr: '3', valL: 2, valR: 3, sign: '<' },
+                { leftExpr: '1 + 2', rightExpr: '3', valL: 3, valR: 3, sign: '=' },
+                { leftExpr: '3 - 1', rightExpr: '1', valL: 2, valR: 1, sign: '>' },
+                { leftExpr: '3 - 2', rightExpr: '2', valL: 1, valR: 2, sign: '<' },
+                { leftExpr: '2 + 1', rightExpr: '2', valL: 3, valR: 2, sign: '>' },
+                { leftExpr: '2 - 1', rightExpr: '1', valL: 1, valR: 1, sign: '=' },
+                // Number vs Expression
+                { leftExpr: '3', rightExpr: '1 + 1', valL: 3, valR: 2, sign: '>' },
+                { leftExpr: '2', rightExpr: '2 + 1', valL: 2, valR: 3, sign: '<' },
+                // Expression vs Expression
+                { leftExpr: '1 + 1', rightExpr: '3 - 1', valL: 2, valR: 2, sign: '=' },
+                { leftExpr: '2 + 1', rightExpr: '1 + 1', valL: 3, valR: 2, sign: '>' }
+            ];
 
-            let applesHTML = '';
-            for (let i = 0; i < applesCount; i++) {
-                applesHTML += `<span class="text-4xl sm:text-6xl animate-bounce hover:scale-125 transition transform inline-block cursor-pointer" style="animation-delay: ${i*0.15}s">🍎</span>`;
+            const task = compareTasks[Math.floor(Math.random() * compareTasks.length)];
+            currentTask = { answer: task.sign };
+
+            gameContent.innerHTML = `
+                <div class="bg-fuchsia-50 border-4 border-fuchsia-200 rounded-3xl p-4 shadow-inner w-full flex justify-center items-center my-2">
+                    <div class="flex items-center gap-2 sm:gap-3 text-2xl sm:text-4xl font-black text-slate-800">
+                        <span class="bg-white border-2 border-fuchsia-300 px-3 py-2 rounded-2xl shadow-sm">${task.leftExpr}</span>
+                        <span class="bg-amber-300 border-2 border-amber-500 text-amber-950 w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-3xl font-black shadow animate-pulse">?</span>
+                        <span class="bg-white border-2 border-fuchsia-300 px-3 py-2 rounded-2xl shadow-sm">${task.rightExpr}</span>
+                    </div>
+                </div>
+            `;
+
+            showHintApples(Math.max(task.valL, task.valR) || 3);
+            renderAnswerButtons(['<', '=', '>'], (opt) => opt === task.sign, true);
+        }
+
+        // ================= 4. INSERT SIGN (+, -, =) =================
+        function setupSignsTask() {
+            taskHeader.innerHTML = '❓ Подбери правильный значок';
+
+            const signTasks = [
+                { num1: '1', num2: '1', res: '2', sign: '+', options: ['+', '-'] },
+                { num1: '2', num2: '1', res: '3', sign: '+', options: ['+', '-'] },
+                { num1: '1', num2: '2', res: '3', sign: '+', options: ['+', '-'] },
+                { num1: '3', num2: '1', res: '2', sign: '-', options: ['+', '-'] },
+                { num1: '3', num2: '2', res: '1', sign: '-', options: ['+', '-'] },
+                { num1: '2', num2: '1', res: '1', sign: '-', options: ['+', '-'] },
+                { num1: '2', num2: '2', res: null, sign: '=', options: ['=', '+', '-'] },
+                { num1: '3', num2: '3', res: null, sign: '=', options: ['=', '+', '-'] },
+                { num1: '1+1', num2: '2', res: null, sign: '=', options: ['=', '+'] }
+            ];
+
+            const task = signTasks[Math.floor(Math.random() * signTasks.length)];
+            currentTask = { answer: task.sign };
+
+            let exprHTML = '';
+            if (task.res !== null) {
+                exprHTML = `
+                    <span class="bg-white border-2 border-sky-300 px-3 py-2 rounded-2xl">${task.num1}</span>
+                    <span class="bg-yellow-300 border-2 border-yellow-500 text-yellow-950 w-12 h-12 rounded-2xl flex items-center justify-center text-3xl animate-pulse">?</span>
+                    <span class="bg-white border-2 border-sky-300 px-3 py-2 rounded-2xl">${task.num2}</span>
+                    <span>=</span>
+                    <span class="bg-emerald-100 border-2 border-emerald-300 text-emerald-800 px-3 py-2 rounded-2xl">${task.res}</span>
+                `;
+            } else {
+                exprHTML = `
+                    <span class="bg-white border-2 border-sky-300 px-3 py-2 rounded-2xl">${task.num1}</span>
+                    <span class="bg-yellow-300 border-2 border-yellow-500 text-yellow-950 w-12 h-12 rounded-2xl flex items-center justify-center text-3xl animate-pulse">?</span>
+                    <span class="bg-white border-2 border-sky-300 px-3 py-2 rounded-2xl">${task.num2}</span>
+                `;
             }
 
             gameContent.innerHTML = `
-                <div class="bg-rose-50 border-4 border-rose-200 rounded-3xl p-6 shadow-inner w-full max-w-md text-center">
-                    <div class="text-lg font-bold text-slate-700 mb-3">Посчитай яблоки в корзинке:</div>
-                    <div class="bg-white/80 p-4 rounded-2xl border-2 border-rose-200 flex justify-center items-center gap-3 shadow-sm min-h-[90px]">
+                <div class="bg-sky-50 border-4 border-sky-200 rounded-3xl p-4 shadow-inner w-full flex justify-center items-center my-2">
+                    <div class="flex items-center gap-2 text-2xl sm:text-4xl font-black text-slate-800">
+                        ${exprHTML}
+                    </div>
+                </div>
+            `;
+
+            renderAnswerButtons(task.options, (opt) => opt === task.sign, true);
+        }
+
+        // ================= 5. APPLE HARVEST (СБОР ЯБЛОК) =================
+        function setupHarvestTask() {
+            taskHeader.innerHTML = '🍎 Сложи яблочки в корзинку!';
+
+            const target = Math.random() > 0.5 ? 2 : 3;
+
+            let applesHTML = '';
+            for (let i = 0; i < target; i++) {
+                applesHTML += `<span class="text-4xl sm:text-5xl animate-bounce transform active:scale-125 transition inline-block cursor-pointer" style="animation-delay: ${i*0.12}s">🍎</span>`;
+            }
+
+            gameContent.innerHTML = `
+                <div class="bg-rose-50 border-4 border-rose-200 rounded-3xl p-4 shadow-inner w-full text-center my-1">
+                    <div class="text-sm font-extrabold text-slate-700 mb-2">Сколько яблочек на экране?</div>
+                    <div class="bg-white p-3 rounded-2xl border-2 border-rose-200 flex justify-center items-center gap-2 min-h-[80px]">
                         ${applesHTML}
                     </div>
                 </div>
@@ -506,7 +556,7 @@
             renderAnswerButtons([1, 2, 3], (opt) => opt === target);
         }
 
-        // --- Helper: Render Hints (Interactive counting dots) ---
+        // --- Helper: Interactive Apple Counter ---
         function showHintApples(count) {
             hintBox.classList.remove('hidden');
             let html = '';
@@ -516,10 +566,16 @@
             hintApples.innerHTML = html;
         }
 
-        // --- Helper: Render Answer Buttons ---
-        function renderAnswerButtons(options, checkIsCorrect) {
-            answersContainer.className = `mt-4 grid gap-3 font-game ${options.length === 2 ? 'grid-cols-2' : options.length === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'}`;
+        // --- Helper: Render Touch-Optimized Answer Buttons ---
+        function renderAnswerButtons(options, checkIsCorrect, isLargeChoice = false) {
             answersContainer.innerHTML = '';
+            
+            // Mobile grid layout based on number of options
+            let gridCols = 'grid-cols-2';
+            if (options.length === 3) gridCols = 'grid-cols-3';
+            if (options.length === 4) gridCols = 'grid-cols-2 sm:grid-cols-4';
+
+            answersContainer.className = `w-full grid ${gridCols} gap-2.5 sm:gap-3`;
 
             const colors = [
                 'bg-pink-400 hover:bg-pink-300 border-pink-600 text-white',
@@ -530,29 +586,27 @@
 
             options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                btn.className = `btn-magic ${colors[idx % colors.length]} border-b-4 text-3xl sm:text-4xl font-black py-4 sm:py-5 rounded-2xl shadow-lg transition active:scale-95 flex items-center justify-center`;
+                btn.className = `btn-touch ${colors[idx % colors.length]} border-b-4 font-black rounded-2xl shadow-md flex items-center justify-center text-3xl sm:text-4xl ${isLargeChoice ? 'btn-large-choice' : ''}`;
                 btn.innerText = opt;
                 btn.onclick = () => handleAnswer(opt, checkIsCorrect(opt), btn);
                 answersContainer.appendChild(btn);
             });
         }
 
-        // --- Answer Check & Feedback Animation ---
+        // --- Answer Logic & Interactive Feedback ---
         function handleAnswer(selectedOpt, isCorrect, btnElement) {
-            // Disable buttons temporarily
             const allBtns = answersContainer.querySelectorAll('button');
             allBtns.forEach(b => b.disabled = true);
 
             if (isCorrect) {
                 audio.correct();
-                btnElement.classList.remove('bg-pink-400', 'bg-purple-400', 'bg-sky-400', 'bg-amber-400');
-                btnElement.classList.add('bg-emerald-500', 'border-emerald-700', 'scale-105');
+                btnElement.classList.add('bg-emerald-500', 'border-emerald-700', 'animate-success');
 
-                // Mini star burst confetti
+                // Confetti burst on mobile
                 confetti({
-                    particleCount: 25,
-                    spread: 60,
-                    origin: { y: 0.7 }
+                    particleCount: 20,
+                    spread: 50,
+                    origin: { y: 0.75 }
                 });
 
                 updateStars(1);
@@ -560,28 +614,26 @@
 
                 setTimeout(() => {
                     loadNextQuestion();
-                }, 1000);
+                }, 850);
 
             } else {
                 audio.wrong();
-                btnElement.classList.add('bg-rose-500', 'animate-shake', 'border-rose-700');
+                btnElement.classList.add('bg-rose-500', 'border-rose-700', 'animate-shake');
                 
-                // Re-enable after mistake
                 setTimeout(() => {
-                    btnElement.classList.remove('bg-rose-500', 'border-rose-700');
+                    btnElement.classList.remove('bg-rose-500', 'border-rose-700', 'animate-shake');
                     allBtns.forEach(b => b.disabled = false);
-                }, 700);
+                }, 650);
             }
         }
 
-        // --- Victory Modal Screen ---
+        // --- Level Complete Celebration ---
         function showVictory() {
             audio.fanfare();
             
-            // Full celebration confetti
             confetti({
-                particleCount: 100,
-                spread: 100,
+                particleCount: 80,
+                spread: 80,
                 origin: { y: 0.5 }
             });
 
@@ -589,10 +641,9 @@
             document.getElementById('victoryModal').classList.remove('hidden');
         }
 
-        // Initialize Audio context on first click
-        document.body.addEventListener('click', () => {
-            audio.init();
-        }, { once: true });
+        // Web Audio initialization on first touch
+        document.body.addEventListener('touchstart', () => { audio.init(); }, { once: true });
+        document.body.addEventListener('click', () => { audio.init(); }, { once: true });
     </script>
 </body>
 </html>
