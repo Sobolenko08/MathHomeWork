@@ -119,6 +119,14 @@
                     </div>
                 </button>
 
+                <button onclick="startMode('compare')" class="btn-magic bg-fuchsia-400 hover:bg-fuchsia-300 border-b-4 border-fuchsia-600 text-fuchsia-950 p-4 rounded-2xl flex items-center justify-start gap-3">
+                    <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">⚖️</span>
+                    <div class="text-left">
+                        <div class="text-lg font-bold">Сравнение</div>
+                        <div class="text-xs font-normal opacity-80">Знаки &gt;, &lt;, =</div>
+                    </div>
+                </button>
+
                 <button onclick="startMode('signs')" class="btn-magic bg-sky-400 hover:bg-sky-300 border-b-4 border-sky-600 text-sky-950 p-4 rounded-2xl flex items-center justify-start gap-3">
                     <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">➕</span>
                     <div class="text-left">
@@ -135,7 +143,7 @@
                     </div>
                 </button>
 
-                <button onclick="startMode('harvest')" class="btn-magic bg-rose-400 hover:bg-rose-300 border-b-4 border-rose-600 text-rose-950 p-4 rounded-2xl flex items-center justify-start gap-3">
+                <button onclick="startMode('harvest')" class="btn-magic bg-rose-400 hover:bg-rose-300 border-b-4 border-rose-600 text-rose-950 p-4 rounded-2xl flex items-center justify-start gap-3 sm:col-span-2">
                     <span class="text-3xl bg-white p-2 rounded-xl shadow-sm">🍎</span>
                     <div class="text-left">
                         <div class="text-lg font-bold">Сбор Яблочек</div>
@@ -320,6 +328,9 @@
                 case 'houses':
                     setupHousesTask();
                     break;
+                case 'compare':
+                    setupCompareTask();
+                    break;
                 case 'signs':
                     setupSignsTask();
                     break;
@@ -333,52 +344,59 @@
         }
 
         // ================= 1. HOUSE OF NUMBERS (СОСТАВ ЧИСЛА) =================
-        function setupHousesTask() {
-            taskHeader.innerHTML = '🏡 Домик числа! Кто живет на этаже?';
+        // ================= 2. COMPARE NUMBERS & EXPRESSIONS (СРАВНЕНИЕ >, <, =) =================
+        function setupCompareTask() {
+            taskHeader.innerHTML = '⚖️ Что больше, меньше или равно?';
 
-            // Randomly choose target 2 or 3
-            const target = Math.random() > 0.5 ? 2 : 3;
-            let first, second;
+            // Tasks limited to 0, 1, 2, 3 and composition of 2, 3
+            const compareTasks = [
+                // Simple numbers
+                { leftExpr: '2', rightExpr: '3', valLeft: 2, valRight: 3, correctSign: '<' },
+                { leftExpr: '3', rightExpr: '1', valLeft: 3, valRight: 1, correctSign: '>' },
+                { leftExpr: '2', rightExpr: '2', valLeft: 2, valRight: 2, correctSign: '=' },
+                { leftExpr: '3', rightExpr: '3', valLeft: 3, valRight: 3, correctSign: '=' },
+                { leftExpr: '0', rightExpr: '2', valLeft: 0, valRight: 2, correctSign: '<' },
+                
+                // Expression vs Number
+                { leftExpr: '1 + 1', rightExpr: '3', valLeft: 2, valRight: 3, correctSign: '<' },
+                { leftExpr: '1 + 2', rightExpr: '3', valLeft: 3, valRight: 3, correctSign: '=' },
+                { leftExpr: '3 - 1', rightExpr: '1', valLeft: 2, valRight: 1, correctSign: '>' },
+                { leftExpr: '3 - 2', rightExpr: '2', valLeft: 1, valRight: 2, correctSign: '<' },
+                { leftExpr: '2 + 1', rightExpr: '2', valLeft: 3, valRight: 2, correctSign: '>' },
+                { leftExpr: '2 - 1', rightExpr: '1', valLeft: 1, valRight: 1, correctSign: '=' },
 
-            if (target === 2) {
-                const pairs = [[1, 1], [0, 2], [2, 0]];
-                [first, second] = pairs[Math.floor(Math.random() * pairs.length)];
-            } else {
-                const pairs = [[1, 2], [2, 1], [0, 3], [3, 0]];
-                [first, second] = pairs[Math.floor(Math.random() * pairs.length)];
-            }
+                // Number vs Expression
+                { leftExpr: '3', rightExpr: '1 + 1', valLeft: 3, valRight: 2, correctSign: '>' },
+                { leftExpr: '2', rightExpr: '2 + 1', valLeft: 2, valRight: 3, correctSign: '<' },
+                { leftExpr: '1', rightExpr: '3 - 2', valLeft: 1, valRight: 1, correctSign: '=' },
 
-            // Hide one side
-            const hideSecond = Math.random() > 0.5;
-            const answer = hideSecond ? second : first;
+                // Expression vs Expression
+                { leftExpr: '1 + 1', rightExpr: '3 - 1', valLeft: 2, valRight: 2, correctSign: '=' },
+                { leftExpr: '2 + 1', rightExpr: '1 + 1', valLeft: 3, valRight: 2, correctSign: '>' },
+                { leftExpr: '3 - 2', rightExpr: '1 + 2', valLeft: 1, valRight: 3, correctSign: '<' }
+            ];
 
-            currentTask = { answer };
+            const task = compareTasks[Math.floor(Math.random() * compareTasks.length)];
+            currentTask = { answer: task.correctSign };
 
             gameContent.innerHTML = `
-                <div class="bg-gradient-to-b from-amber-100 to-orange-100 border-4 border-amber-300 rounded-3xl p-4 sm:p-6 shadow-md w-full max-w-xs flex flex-col items-center">
-                    <div class="bg-rose-500 text-white font-game text-3xl font-black px-6 py-2 rounded-2xl shadow-sm mb-4 border-2 border-white">
-                        🏠 Домик ${target}
-                    </div>
-                    <div class="flex items-center justify-center gap-4 bg-white p-4 rounded-2xl border-2 border-amber-200 w-full text-3xl sm:text-4xl font-game font-bold">
-                        <div class="bg-blue-100 border-2 border-blue-300 text-blue-700 w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center">
-                            ${hideSecond ? first : '?'}
-                        </div>
-                        <div class="text-amber-500">+</div>
-                        <div class="bg-pink-100 border-2 border-pink-300 text-pink-700 w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center">
-                            ${hideSecond ? '?' : second}
-                        </div>
+                <div class="bg-fuchsia-50 border-4 border-fuchsia-200 rounded-3xl p-6 shadow-inner w-full flex justify-center items-center my-3">
+                    <div class="flex items-center gap-3 sm:gap-6 text-3xl sm:text-5xl font-game font-black text-slate-800">
+                        <span class="bg-indigo-100 border-2 border-indigo-300 px-4 py-3 rounded-2xl shadow-sm">${task.leftExpr}</span>
+                        <span class="bg-amber-200 border-2 border-amber-400 text-amber-900 w-14 h-14 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center animate-pulse text-4xl sm:text-5xl shadow">?</span>
+                        <span class="bg-pink-100 border-2 border-pink-300 px-4 py-3 rounded-2xl shadow-sm">${task.rightExpr}</span>
                     </div>
                 </div>
             `;
 
-            // Render options (0, 1, 2, 3)
-            const options = [0, 1, 2, 3];
-            renderAnswerButtons(options, (opt) => opt === answer);
+            // Hint shows max value needed for understanding
+            showHintApples(Math.max(task.valLeft, task.valRight) || 3);
 
-            showHintApples(target);
+            // Large sign buttons (<, =, >)
+            renderAnswerButtons(['<', '=', '>'], (opt) => opt === task.correctSign);
         }
 
-        // ================= 2. INSERT SIGN (+, -, =) =================
+        // ================= 3. INSERT SIGN (+, -, =) =================
         function setupSignsTask() {
             taskHeader.innerHTML = '🧩 Вставь правильный значок!';
 
